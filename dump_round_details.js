@@ -7,7 +7,7 @@ casper.cli.drop("cli");
 casper.cli.drop("casper-path");
 // display help
 if (!casper.cli.has("compet") || !casper.cli.has("division") || !casper.cli.has("group")) {
-    casper.echo("Usage:$ casperjs get_teams.js --compet=<COMPET_ID> --division=<DIVISION_ID --group=<GROUP_ID> [--season=<SAISON>]").exit();
+    casper.echo("Usage:$ casperjs get_round_details.js --compet=<COMPET_ID> --division=<DIVISION_ID --group=<GROUP_ID> [--season=<SAISON>]").exit();
 }
 
 var compet = casper.cli.get("compet").toString();
@@ -54,10 +54,21 @@ casper.wait(20).then(function() {
     }, false);
 });
 
-// Dump team rankings
+// Select every round
+var round = 0;
 casper.then(function() {
-    var plain_text = casper.getPlainText();
-    casper.echo(plain_text.split("\n\n")[4].split("Imprimer")[0]);
+    var round_btn_ids = this.getElementsAttribute('a[class="lien_titre"]', 'id');
+    round_btn_ids.forEach(function(id) {
+        casper.wait(20).then(function() {
+            casper.click("a[id='"+id+"']");
+        });
+        casper.wait(20).then(function() {
+            var plain_text = casper.getPlainText();
+            casper.echo("\nround:" + (++round) + ",group:" + group + ",division:" + division + ",compet:" + compet + ",season:" + season);
+            casper.echo(plain_text.split("\n\n")[2]);
+        });
+        casper.back();
+    });
 });
 
 casper.run();
