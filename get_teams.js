@@ -7,7 +7,7 @@ casper.cli.drop("cli");
 casper.cli.drop("casper-path");
 // display help
 if (!casper.cli.has("compet") || !casper.cli.has("division") || !casper.cli.has("group")) {
-    casper.echo("Usage: $ ./get_games.js --compet=<COMPET_ID> --division=<DIVISION_ID --group=<GROUP_ID> [--season=<SAISON>]").exit();
+    casper.echo("Usage:$ casperjs get_teams.js --compet=<COMPET_ID> --division=<DIVISION_ID --group=<GROUP_ID> [--season=<SAISON>]").exit();
 }
 
 var compet = casper.cli.get("compet").toString();
