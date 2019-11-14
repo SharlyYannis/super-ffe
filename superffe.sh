@@ -9,11 +9,11 @@ division=7
 group=879
 season='Actuelle'
 
-#[ ! -d "results" ] && mkdir results
-#[ -e "results/superffe.sqlite" ] && rm results/superffe.sqlite
+[ ! -d "results" ] && mkdir results
+[ -e "results/superffe.sqlite" ] && rm results/superffe.sqlite
 
 echo -n "Extracting Seasons, Competitions, Divisions and Groups..."
-#casperjs dump_groups.js | grep -v "TypeError" > results/groups.tmp
+#casperjs dump_groups.js | grep -v "TypeError" | sed "s/'/ /g" > results/groups.tmp
 echo " OK!"
 
 echo -n "Building DB with Seasons, Competitions, Divisions and Groups..."

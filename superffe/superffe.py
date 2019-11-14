@@ -4,6 +4,10 @@ class DB:
     def __init__(self, db_path):
         self.db = sqlite3.connect(db_path)
         self.cursor = self.db.cursor()
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS SEASONS (labelSeason text)")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS COMPETITIONS (uNumCompetition text, idCompetition int, labelCompetition text, labelSeason text)")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS DIVISIONS (uNumDivision text, idDivision int, labelDivision text, uNumCompetition text)")
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS GROUPS (uNumGroup text, idGroup int, labelGroup text, uNumDivision text)")
         self.cursor.execute("CREATE TABLE IF NOT EXISTS TEAMS (labelTeam text, placeTeam int, pointsTeam int, j int, d int, p int, c int, uidGroup text)")
         self.cursor.execute("CREATE TABLE IF NOT EXISTS ROUNDS (uidRound text, numRound int, uidGroup text)")
         self.cursor.execute("CREATE TABLE IF NOT EXISTS MATCHS (uidMatch text, team1 text, team2 text, scoreMatch text, uidRound text)")
@@ -16,7 +20,19 @@ class DB:
     def parse_groups(self, input_file):
         for line in open(input_file, 'r'):
             if(line[-1:] is '\n'): line = line[:-1]
-            print(line)
+            if "group_id:" in line:
+                values = self._concat_group_values(line)
+                self.cursor.execute("INSERT INTO GROUPS VALUES " + values)
+            elif "division_id:" in line:
+                values = self._concat_division_values(line)
+                self.cursor.execute("INSERT INTO DIVISIONS VALUES " + values)
+            elif "compet_id:" in line:
+                values = self._concat_compet_values(line)
+                self.cursor.execute("INSERT INTO COMPETITIONS VALUES " + values)
+            elif "season:" in line:
+                labelSeason = line.split(',')[0].split(':')[1]
+                values = "('"+labelSeason+"')"
+                self.cursor.execute("INSERT INTO SEASONS VALUES " + values)
 
     def parse_teams(self, input_file):
         (group, division, compet, season) = ("", "", "", "")
@@ -67,7 +83,35 @@ class DB:
         for team_array in self.cursor.execute("SELECT labelTeam FROM TEAMS"):
             teams.append(team_array[0])
         return teams
+    
+    def _concat_group_values(self, line):
+        labelSeason = line.split(',')[0].split(':')[1]
+        idCompetition = line.split(',')[1].split(':')[1]
+        idDivision = line.split(',')[3].split(':')[1]
+        idGroup = line.split(',')[5].split(':')[1]
+        labelGroup = line.split(',')[6].split(':')[1]
+        uNumGroup = labelSeason + '_' + idCompetition + '_' + idDivision + '_' + idGroup
+        uNumDivision = labelSeason + '_' + idCompetition + '_' + idDivision
+        return "('" + uNumGroup + "'," + idGroup + ",'" + \
+                labelGroup + "','" + uNumDivision + "')"
+    
+    def _concat_division_values(self, line):
+        labelSeason = line.split(',')[0].split(':')[1]
+        idCompetition = line.split(',')[1].split(':')[1]
+        idDivision = line.split(',')[3].split(':')[1]
+        labelDivision = line.split(',')[4].split(':')[1]
+        uNumDivision = labelSeason + '_' + idCompetition + '_' + idDivision
+        uNumCompetition = labelSeason + "_" + idCompetition
+        return "('" + uNumDivision + "'," + idDivision + ",'" + \
+                labelDivision + "','" + uNumCompetition + "')"
 
+    def _concat_compet_values(self, line):
+        idCompetition = line.split(',')[1].split(':')[1]
+        labelCompetition = line.split(',')[2].split(':')[1]
+        labelSeason = line.split(',')[0].split(':')[1]
+        uNumCompetition = labelSeason + "_" + idCompetition
+        return "('" + uNumCompetition + "'," + idCompetition + ",'" + \
+                labelCompetition + "','" + labelSeason + "')"
                 
     def _concat_game_values(self, actor1, actor2, board, score, uidMatch):
         (player1, elo1) = actor1.rsplit(' ', 1)
