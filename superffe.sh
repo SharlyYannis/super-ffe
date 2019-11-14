@@ -1,14 +1,5 @@
 #!/bin/bash
 
-# TODO Build db of seasons, compets, divisions and groups
-
-# Loop over SCDG
-
-compet=2
-division=7
-group=879
-season='Actuelle'
-
 [ ! -d "results" ] && mkdir results
 [ -e "results/superffe.sqlite" ] && rm results/superffe.sqlite
 
@@ -19,6 +10,13 @@ echo " OK!"
 echo -n "Building DB with Seasons, Competitions, Divisions and Groups..."
 python3 -c'from superffe import DB; db=DB("results/superffe.sqlite"); db.parse_groups("results/groups.tmp")'
 echo " OK!"
+
+#TODO Loop over groups, divisions, competitions, seasons
+
+season='Actuelle'
+compet=2
+division=7
+group=879
 
 echo -n "Extracting Teams from group $group..."
 casperjs dump_teams.js --compet=$compet --division=$division --group=$group --season=$season | grep "^[1-9]\|group" > results/teams.tmp
