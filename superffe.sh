@@ -10,22 +10,26 @@ echo " OK!"
 echo -n "Building DB with Seasons, Competitions, Divisions and Groups..."
 python3 -c'from superffe import DB; db=DB("results/superffe.sqlite"); db.parse_groups("results/groups.tmp")'
 echo " OK!"
+sqlite3 results/superffe.sqlite "select labelSeason, idCompetition, idDivision, idGroup from (select * from divisions join competitions on divisions.uNumCompetition = competitions.uNumCompetition) as A join groups on A.uNumDivision = groups.uNumDivision" > results/loopable.tmp
 
-#TODO Loop over groups, divisions, competitions, seasons
+while read line; do
 
-season='Actuelle'
-compet=2
-division=7
-group=879
+    season=`echo "$line" | cut -f1 -d\|`
+    compet=`echo "$line" | cut -f2 -d\|`
+    division=`echo "$line" | cut -f3 -d\|`
+    group=`echo "$line" | cut -f4 -d\|`
 
-echo -n "Extracting Teams from group $group..."
-casperjs dump_teams.js --compet=$compet --division=$division --group=$group --season=$season | grep "^[1-9]\|group" > results/teams.tmp
-echo " OK!"
+    echo $line    
+    if [ $season != "Actuelle" ]
+    then
+        continue
+    fi
 
-echo -n "Extracting round details from group $group..."
-casperjs dump_round_details.js --compet=$compet --division=$division --group=$group --season=$season | grep -v "^Comp\|^TypeError" | sed "s/\xC2\xA0\|'/ /g" > results/round_details.tmp
-echo " OK!"
+    casperjs dump_teams.js --compet=$compet --division=$division --group=$group --season=$season | grep "^[1-9]\|group" > results/teams.tmp
+    casperjs dump_round_details.js --compet=$compet --division=$division --group=$group --season=$season | grep -v "^Comp\|^TypeError" | sed "s/\xC2\xA0\|'/ /g" > results/round_details.tmp
 
-echo -n "Adding teams and round details to DB for group $group..."
-python3 -c'from superffe import DB; db=DB("results/superffe.sqlite"); db.parse_teams("results/teams.tmp"); db.parse_round_details("results/round_details.tmp")'
-echo " OK!"
+    python3 -c'from superffe import DB; db=DB("results/superffe.sqlite"); db.parse_teams("results/teams.tmp"); db.parse_round_details("results/round_details.tmp")'
+
+done <results/loopable.tmp
+
+
