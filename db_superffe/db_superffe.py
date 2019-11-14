@@ -48,6 +48,13 @@ def create_db(db_file):
     db, cursor = _init_db(db_file)
     _close_and_commit(db)
 
+def parse_groups(input_file, db_file):
+    db, cursor = _init_db(db_file)
+    for line in open(input_file, 'r'):
+        if(line[-1:] is '\n'): line = line[:-1]
+        print(line)
+    _close_and_commit(db)
+
 def parse_teams(input_file, db_file):
     db, cursor = _init_db(db_file)
     (group, division, compet, season) = ("", "", "", "")
